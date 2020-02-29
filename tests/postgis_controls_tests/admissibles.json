@@ -1,0 +1,6 @@
+{
+  "points": ["linestrings1", "linestrings2", "polygons"],
+  "linestrings1": ["points", "linestrings2", "polygons"],
+  "linestrings2": ["points", "linestrings1", "polygons"],
+  "polygons": ["points", "linestrings1", "linestrings2"]
+}

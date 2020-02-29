@@ -250,3 +250,106 @@ INSERT INTO null_geoms.polygons (geom) VALUES
 	(ST_GeomFromText('Polygon((2 2,2 1,4 1,2 2))', 4326)),
 	(NULL)
 ;
+
+/*
+	Not allowed intersections
+*/
+
+/*
+ not admissibles - crosses
+*/
+CREATE SCHEMA IF NOT EXISTS n_a_i_crosses;
+
+DROP TABLE IF EXISTS n_a_i_crosses.points;
+CREATE TABLE n_a_i_crosses.points (
+	id serial,
+	geom geometry(Point, 4326)
+);
+INSERT INTO n_a_i_crosses.points (geom) VALUES
+	(ST_GeomFromText('Point(1 1)', 4326)),
+	(ST_GeomFromText('Point(20 20)', 4326))
+;
+
+DROP TABLE IF EXISTS n_a_i_crosses.linestrings1;
+CREATE TABLE n_a_i_crosses.linestrings1 (
+	id serial,
+	geom geometry(LineString, 4326)
+);
+INSERT INTO n_a_i_crosses.linestrings1 (geom) VALUES
+	(ST_GeomFromText('LineString(0 0,2 2)', 4326)),
+	(ST_GeomFromText('LineString(10 10,15 15)', 4326))
+;
+
+DROP TABLE IF EXISTS n_a_i_crosses.linestrings2;
+CREATE TABLE n_a_i_crosses.linestrings2 (
+	id serial,
+	geom geometry(LineString, 4326)
+);
+INSERT INTO n_a_i_crosses.linestrings2 (geom) VALUES
+	(ST_GeomFromText('LineString(0 2,2 0)', 4326))
+;
+
+DROP TABLE IF EXISTS n_a_i_crosses.polygons;
+CREATE TABLE n_a_i_crosses.polygons (
+	id serial,
+	geom geometry(Polygon, 4326)
+);
+INSERT INTO n_a_i_crosses.polygons (geom) VALUES
+	(ST_GeomFromText('Polygon((1 0,1 3,3 3,3 0,1 0))', 4326)),
+	(ST_GeomFromText('Polygon((5 5,5 4,4 4,4 5,5 5))', 4326))
+;
+
+/*
+ point or line intersection / line-line or line-polygon intersection
+*/
+CREATE SCHEMA IF NOT EXISTS n_a_i_int_pto_or_line;
+
+DROP TABLE IF EXISTS n_a_i_int_pto_or_line.points;
+CREATE TABLE n_a_i_int_pto_or_line.points (
+	id serial,
+	geom geometry(Point, 4326)
+);
+INSERT INTO n_a_i_int_pto_or_line.points (geom) VALUES
+	(ST_GeomFromText('Point(2 2)', 4326)),
+	(ST_GeomFromText('Point(20 20)', 4326))
+;
+
+DROP TABLE IF EXISTS n_a_i_int_pto_or_line.linestrings1;
+CREATE TABLE n_a_i_int_pto_or_line.linestrings1 (
+	id serial,
+	geom geometry(LineString, 4326)
+);
+INSERT INTO n_a_i_int_pto_or_line.linestrings1 (geom) VALUES
+	(ST_GeomFromText('LineString(0 0,1 1,2 2)', 4326)),
+	(ST_GeomFromText('LineString(10 10,15 15)', 4326))
+;
+
+DROP TABLE IF EXISTS n_a_i_int_pto_or_line.linestrings2;
+CREATE TABLE n_a_i_int_pto_or_line.linestrings2 (
+	id serial,
+	geom geometry(LineString, 4326)
+);
+INSERT INTO n_a_i_int_pto_or_line.linestrings2 (geom) VALUES
+	(ST_GeomFromText('LineString(0 2,1 1,2 0)', 4326)),
+	(ST_GeomFromText('LineString(3 3,3 4,4 3,3 3)', 4326))
+;
+
+DROP TABLE IF EXISTS n_a_i_int_pto_or_line.polygons1;
+CREATE TABLE n_a_i_int_pto_or_line.polygons1 (
+	id serial,
+	geom geometry(Polygon, 4326)
+);
+INSERT INTO n_a_i_int_pto_or_line.polygons1 (geom) VALUES
+	(ST_GeomFromText('Polygon((0 0,0 3,3 3,3 0,0 0))', 4326)),
+	(ST_GeomFromText('Polygon((5 5,5 4,4 4,4 5,5 5))', 4326))
+;
+
+DROP TABLE IF EXISTS n_a_i_int_pto_or_line.polygons2;
+CREATE TABLE n_a_i_int_pto_or_line.polygons2 (
+	id serial,
+	geom geometry(Polygon, 4326)
+);
+INSERT INTO n_a_i_int_pto_or_line.polygons2 (geom) VALUES
+	(ST_GeomFromText('Polygon((1 1,1 2,2 2,2 1,1 1))', 4326)),
+	(ST_GeomFromText('Polygon((5 5,5 4,4 4,4 5,5 5))', 4326))
+;
