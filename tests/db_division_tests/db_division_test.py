@@ -11,7 +11,7 @@ import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__)))))
 
 from controls.db_division.main import ( # pylint: disable=import-error, C0413
-    db_connect, create_consignments_table, convert_consignments_SRID, get_consignments, 
+    db_connect, create_consignments_table, convert_consignments_srid, get_consignments,
     create_schema, get_tables_from_original_schema, create_table, load_data
 )
 
@@ -45,7 +45,8 @@ class TestDividisionBD(unittest.TestCase):
         conn = db_connect(self.host, self.port, self.db, self.user, self.password)
         with conn.cursor() as c:
             tables_all = get_tables_from_original_schema(c, 'cartografia_nacional_hidrografia')
-            self.assertEqual(tables_all, [('agua_a', ), ('agua_estancada_desconocida_a', ), ('area_humeda_a', )])
+            self.assertEqual(tables_all, [('agua_a', ), ('agua_estancada_desconocida_a', ),
+                                          ('area_humeda_a', )])
 
     def test_create_consignments_table(self):
         """Unit test of create_consignments_table procedure."""
@@ -53,7 +54,8 @@ class TestDividisionBD(unittest.TestCase):
         conn = db_connect(self.host, self.port, self.db, self.user, self.password)
         with conn.cursor() as c:
             tables_all = get_tables_from_original_schema(c, 'cartografia_nacional_hidrografia')
-            sql_file = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__)))), 'controls', 'db_division', 'files', 'Remesa_Nacional.sql')
+            sql_file = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__)))),
+            'controls', 'db_division', 'files', 'Remesa_Nacional.sql')
             create_consignments_table(c, 'public', 'remesa_nacional', sql_file, 'cartografia_nacional_hidrografia', tables_all)
             statement = 'SELECT COUNT(*) FROM public.remesa_nacional;'
             c.execute(statement)
@@ -72,7 +74,7 @@ class TestDividisionBD(unittest.TestCase):
             self.assertEqual(len(consignments), 12)
 
     def test_convert_consignments_srid(self):
-        """Unit test of convert_consignments_SRID procedure."""
+        """Unit test of convert_consignments_srid procedure."""
         conn = db_connect(self.host, self.port, self.db, self.user, self.password)
         with conn.cursor() as c:
             tables_all = get_tables_from_original_schema(c, 'cartografia_nacional_hidrografia')
@@ -90,7 +92,7 @@ class TestDividisionBD(unittest.TestCase):
             self.assertEqual(len(rows), 1)
             self.assertEqual(rows[0][0], 5381)
             # convert SRID and check
-            convert_consignments_SRID(c,  'public', 'remesa_nacional', 'cartografia_nacional_hidrografia', tables_all)
+            convert_consignments_srid(c,  'public', 'remesa_nacional', 'cartografia_nacional_hidrografia', tables_all)
             statement = "SELECT Find_SRID('public', 'remesa_nacional', 'geom');"
             c.execute(statement)
             rows = c.fetchall()
@@ -120,7 +122,7 @@ class TestDividisionBD(unittest.TestCase):
         with conn.cursor() as c:
             table_original = 'cartografia_nacional_hidrografia.agua_estancada_desconocida_a'
             table_new = 'rn01.agua_estancada_desconocida_a'
-            create_table(c, table_original, table_new, 'public', 'remesa_nacional')
+            create_table(c, table_original, table_new)
             statement = "SELECT COUNT(*) FROM information_schema.tables WHERE  table_schema = 'rn01'AND table_name = 'agua_estancada_desconocida_a'"
             c.execute(statement)
             rows = c.fetchall()

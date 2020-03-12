@@ -1,9 +1,11 @@
-""" Database division by consignments.
-    This program creates an independent schema for every consigment, inserting only objects intersecting with it's geometry.
+r""" Database division by consignments.
+    This program creates an independent schema for every consigment, inserting only objects
+    intersecting with it's geometry.
 
 Parameters:
     $python main.py host port database schema
-    user password consignments_sql_file consignments_schema consignments_table consignment_schema_prefix
+    user password consignments_sql_file consignments_schema consignments_table
+    consignment_schema_prefix
 
 Examples:
     $python main.py -h
@@ -34,17 +36,21 @@ logger.setLevel(logging.INFO)
 
 def get_args():
     """ Return arguments from input. """
-    parser = argparse.ArgumentParser(description=_('This program creates an independent schema for every consigment, inserting only objects intersecting with its geometry.'))
+    parser = argparse.ArgumentParser(description=_('This program creates an independent schema \
+    for every consigment, inserting only objects intersecting with its geometry.'))
     parser.add_argument('host', help=_('database host'))
     parser.add_argument('port', help=_('database port'))
     parser.add_argument('database', help=_('database name'))
     parser.add_argument('schema', help=_('schema name'))
     parser.add_argument('user', help=_('database username'))
-    parser.add_argument('password', help=_('database password')) 
-    parser.add_argument('consignments_sql_file', help=_('path to the file with the consignments definitions'))
-    parser.add_argument('consignments_schema', help=_('name of the schema that contains the consignments table'))
+    parser.add_argument('password', help=_('database password'))
+    parser.add_argument('consignments_sql_file',
+                        help=_('path to the file with the consignments definitions'))
+    parser.add_argument('consignments_schema',
+                        help=_('name of the schema that contains the consignments table'))
     parser.add_argument('consignments_table', help=_('name of the consignments table'))
-    parser.add_argument('consignments_schema_prefix', help=_('prefix to be used for the schema names to be created for every consignment'))
+    parser.add_argument('consignments_schema_prefix',
+                        help=_('prefix for the schema names to be created for every consignment'))
     return parser.parse_args()
 
 def db_connect(host, port, database, user, password):
@@ -69,11 +75,13 @@ def db_connect(host, port, database, user, password):
         connection = psycopg2.connect(**connection_parameters)
         connection.autocommit = True
     except:
-        logger.error('{}\n{}'.format(_('It is not possible to connect to the database.'), sys.exc_info()))
+        logger.error('{}\n{}'.format(_('It is not possible to connect to the database.'),
+                                     sys.exc_info()))
         sys.exit()
     return connection
 
-def create_consignments_table(cursor, consignments_schema, consignments_table, sql_file, data_schema, tables_all):
+def create_consignments_table(cursor, consignments_schema, consignments_table, sql_file,
+                              data_schema, tables_all):
     """ Helper procedure to create the consignments table.
     Args:
         cursor: DB cursor.
@@ -91,12 +99,14 @@ def create_consignments_table(cursor, consignments_schema, consignments_table, s
         with open(sql_file, "r") as file:
             cursor.execute(file.read())
         # convert consignments SRID to the SRID used in data
-        convert_consignments_SRID(cursor, consignments_schema, consignments_table, data_schema, tables_all)
+        convert_consignments_srid(cursor, consignments_schema, consignments_table,
+                                  data_schema, tables_all)
     except:
         logger.error('{}\n{}'.format(_('It is not possibe to create consignments table.'), sys.exc_info()))
         sys.exit()
 
-def convert_consignments_SRID(cursor, consignments_schema, consignments_table, data_schema, tables_all):
+def convert_consignments_srid(cursor, consignments_schema, consignments_table, data_schema,
+                              tables_all):
     """ Helper procedure to change the consigments definition SRID.
     Args:
         cursor: DB cursor.
@@ -108,9 +118,10 @@ def convert_consignments_SRID(cursor, consignments_schema, consignments_table, d
     try:
         # get SRID from consignments
         logger.info('{}...'.format(_('Searching for consignments and data SRID.')))
-        statement = "SELECT Find_SRID('{}', '{}', 'geom');".format(consignments_schema, consignments_table)
+        statement = "SELECT Find_SRID('{}', '{}', 'geom');".format(
+            consignments_schema, consignments_table)
         cursor.execute(statement)
-        consignments_srid_tmp = cursor.fetchall()        
+        consignments_srid_tmp = cursor.fetchall()
         consignments_srid = consignments_srid_tmp[0][0]
         if consignments_srid <= 0:
             logger.error('{}'.format(_('It is not possible to find the consignments SRID.')))
@@ -126,12 +137,12 @@ def convert_consignments_SRID(cursor, consignments_schema, consignments_table, d
                 srid = result[0][0]
             elif srid != result[0][0]:
                 logger.error('{}'.format(_('Different tables in the same schema uses different SRID.')))
-                sys.exit()        
+                sys.exit()
         if srid <= 0:
             logger.error('{}'.format(_('It is not possible to find the data SRID.')))
             sys.exit()
         logger.info('{}: {}'.format(_('Data SRID'), str(srid)))
-        if (consignments_srid != srid):
+        if consignments_srid != srid:
             # modify the SRID
             logger.info('{} {}.'.format(_('Converting consignments SRID to'), str(srid)))
             statement = 'ALTER TABLE ' + consignments_schema + '.' + consignments_table +'\
@@ -142,7 +153,7 @@ def convert_consignments_SRID(cursor, consignments_schema, consignments_table, d
             logger.info('{}'.format(_('SRID conversions not needed.')))
     except:
         logger.error('{}\n{}'.format(_('It is not possible to convert the consignments SRID to the data SRID.'), sys.exc_info()))
-        sys.exit()        
+        sys.exit()
 
 def get_consignments(cursor, schema, table):
     """ Helper function to get a list of the consinments.
@@ -191,20 +202,20 @@ def get_tables_from_original_schema(cursor, schema):
         A list of all data tables.
     """
     try:
-        cursor.execute("SELECT table_name FROM information_schema.tables WHERE table_schema = '" + schema + "' ORDER BY table_name")
+        cursor.execute("SELECT table_name FROM information_schema.tables WHERE table_schema = '" +
+                       schema + "' ORDER BY table_name")
         return cursor.fetchall()
     except:
-        logger.error('{}\n{}'.format(_('It is not possible to query the original schema tables.'), sys.exc_info()))
+        logger.error('{}\n{}'.format(_('It is not possible to query the original schema tables.'), 
+                                     sys.exc_info()))
         sys.exit()
 
-def create_table(cursor, table_src, table_dest, consignments_schema, consignments_table):
+def create_table(cursor, table_src, table_dest):
     """ Helper procedure to create table with the same structure than existing table.
     Args:
         cursor: DB cursor.
         table_src: existing table name.
         table_dest: new table name.
-        consignments_schema: consingments schema name.
-        consignments_table: consingments table name.
     """
     try:
         statement_create_table = 'CREATE TABLE ' + table_dest + ' ( like ' + table_src + ')'
@@ -236,7 +247,7 @@ def load_data(cursor, consignments_schema, consignments_table, consignment_id, t
     else:
         if cursor.rowcount > 0:
             logger.info('{} {}: {}...'.format(_('Objects added to the table'), table_name, str(cursor.rowcount)))
-            
+
 def main():
     """Main procedure."""
     # execute logic
@@ -262,7 +273,7 @@ def main():
                 table_original = args.schema + '.' + table[0]
                 table_new = schema_new + '.' + table[0]
                 # create table
-                create_table(c, table_original, table_new, args.consignments_schema, args.consignments_table)
+                create_table(c, table_original, table_new)
                 # load intersecting objects into the table
                 load_data(c, args.consignments_schema, args.consignments_table, consignment_id, table[0], table_original, table_new)
     conn.close()
