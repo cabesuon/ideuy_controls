@@ -2,6 +2,8 @@
 
 Functions:
   read_json_file.
+  read_twf_file.
+  get_files_path.
 
 Classes:
   FileManagerError.
@@ -30,6 +32,55 @@ def read_json_file(file_name):
     with open(file_name) as json_data:
       data = json.load(json_data)
   return data
+
+def read_twf_file(file_name):
+  """Read a TWF file.
+
+  Args:
+    file_name: Name of the file.
+
+  Returns:
+    List of six floats.
+  """
+  if not file_name:
+    return None
+  if os.path.isfile(file_name):
+    with open(file_name) as file_data:
+      try:
+        return [
+          float(file_data.readline().rstrip()),
+          float(file_data.readline().rstrip()),
+          float(file_data.readline().rstrip()),
+          float(file_data.readline().rstrip()),
+          float(file_data.readline().rstrip()),
+          float(file_data.readline().rstrip())
+        ]
+      except ValueError:
+        return None
+  return None
+
+def get_files_path(start_dir, file_type, recursive=False):
+  """Returns the list of files path of a start folder.
+
+  Args:
+    start_dir: Name of the start folder.
+    recursive: Boolean indicating if it should explore sub folders.
+    format: Name of the files format.
+
+  Returns:
+    List of files path.
+  """
+  files = []
+  fext = '.{}'.format(file_type)
+  if not recursive:
+    files = [
+      os.path.join(start_dir, fname) for fname in os.listdir(start_dir)
+      if os.path.isfile(os.path.join(start_dir, fname)) and fname.endswith(fext)
+    ]
+  else:
+    for root, _, dir_files in os.walk(start_dir):
+      files.extend([os.path.join(root, fname) for fname in dir_files if fname.endswith(fext)])
+  return files
 
 class FileManagerError(Exception):
   """Exception for FileManager."""
@@ -102,26 +153,26 @@ class FileManager:
       return os.path.join(self.get_dir(dir_name), file_name)
     return os.path.join(self.output_dir, file_name)
 
-  def start_csv_file(self, file_name, hrow):
+  def start_csv_file(self, file_name, hrow, dir_name=None):
     """Initialize a CSV file with the headers.
 
     Args:
       file_name: Name of the file.
       hrow: Header of the file.
     """
-    with open(self._output_file_path(None, file_name), 'w', newline='') as csvfile:
+    with open(self._output_file_path(dir_name, file_name), 'w', newline='') as csvfile:
       writer = csv.writer(csvfile)
       if hrow:
         writer.writerow(hrow)
 
-  def append_csv_file(self, file_name, row):
+  def append_csv_file(self, file_name, row, dir_name=None):
     """Append a row to a CSV file.
 
     Args:
       file_name: Name of the file.
       row: Row to append to the file.
     """
-    with open(self._output_file_path(None, file_name), 'a', newline='') as csvfile:
+    with open(self._output_file_path(dir_name, file_name), 'a', newline='') as csvfile:
       writer = csv.writer(csvfile)
       if row:
         writer.writerow(row)

@@ -1,4 +1,4 @@
-"""Module that contains the unit tests for controls.commons_controls.time.
+"""Main program for postgis controls.
 
 Examples:
   $python main.py -h.
@@ -10,13 +10,6 @@ Examples:
   --host local-data-server --rule multipart.
   $python main.py test_vector_db null_geoms test_user test_password output
   --host local-data-server --rule null.
-
-Attributes:
-  _: gettext
-
-Classes:
-  TestTimeManager.
-  TestTimeFunctions.
 """
 import os
 import sys
@@ -114,6 +107,7 @@ def init_file_manager(out_dir, rule):
   return fman
 
 def init_logging():
+  """ Helper function to initialize logging."""
   logger.setLevel(logging.INFO)
   # create a file handler
   handler = logging.FileHandler('{}.log'.format(get_str_time()))

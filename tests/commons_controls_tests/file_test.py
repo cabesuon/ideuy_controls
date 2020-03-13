@@ -13,7 +13,7 @@ import json
 import csv
 import os
 from controls.commons_controls.file import (
-  FileManager, read_json_file
+  FileManager, read_json_file, read_twf_file, get_files_path
 )
 
 class TestFileManager(unittest.TestCase):
@@ -130,6 +130,9 @@ class TestFileFunctions(unittest.TestCase):
 
   def setUp(self):
     self._ = gettext.gettext
+    self.dire = '_common-tests-file-test-output-dir_'
+    if not os.path.exists(self.dire):
+      os.makedirs(self.dire)
 
   def test_read_json_file(self):
     """Unit test of function read_json_file."""
@@ -146,4 +149,51 @@ class TestFileFunctions(unittest.TestCase):
       data,
       adata,
       self._('incorrect json')
+    )
+
+  def test_read_twf_file(self):
+    """Unit test of function read_twf_file."""
+    file_name = os.path.join(self.dire, 'file_name.twf')
+    expected = [2.5, 0, 0, -2.5, 671303.27899, 6224247.39744]
+    with open(file_name, 'w', encoding='utf-8') as twffile:
+      twffile.write('\n'.join(map(str, expected)))
+    actual = read_twf_file(file_name)
+    self.assertEqual(
+      expected,
+      actual,
+      self._('incorrect json')
+    )
+
+  def test_get_files_path(self):
+    """Unit test of function get_files_path."""
+    dirs = [
+      os.path.join(self.dire, 'd1'),
+      os.path.join(self.dire, 'd1', 'd2')
+    ]
+    files = [
+      os.path.join(dirs[0], 'f1.txt'),
+      os.path.join(dirs[0], 'f2.txt'),
+      os.path.join(dirs[0], 'none'),
+      os.path.join(dirs[1], 'f3.txt'),
+      os.path.join(dirs[1], 'none.none'),
+    ]
+    for d__ in dirs:
+      if not os.path.exists(d__):
+        os.makedirs(d__)
+    for f__ in files:
+      with open(f__, 'w', encoding='utf-8') as txtfile:
+        txtfile.write(f__)
+    expected = [files[0], files[1]]
+    actual = get_files_path(dirs[0], 'txt', False)
+    self.assertEqual(
+      expected,
+      actual,
+      self._('recursive false - incorrect file paths')
+    )
+    expected = [files[0], files[1], files[3]]
+    actual = get_files_path(dirs[0], 'txt', True)
+    self.assertEqual(
+      expected,
+      actual,
+      self._('recursive true - incorrect file paths')
     )
