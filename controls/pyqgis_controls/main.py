@@ -1,15 +1,15 @@
 """ Module that controls the correct flow of the hydrography.
 
 Examples:
-  $python main_pyqgis_controls.py -h.
-  $python main_pyqgis_controls.py dbname dbschema user password output rem conf.  
-  $python main_pyqgis_controls.py dbname dbschema user password output rem conf.
+  $python main.py -h.
+  $python main.py dbname dbschema user password output rem conf.  
+  $python main.py dbname dbschema user password output rem conf.
   $python main.py test_vector_db duplicate_geoms test_user test_password output --server localhost --port 5432.
 
 Attributes:
   _: gettext
 
-pyqgis_controls.main_pyqgis_controls
+pyqgis_controls.main
 """
 import sys
 import argparse
