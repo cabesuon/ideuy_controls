@@ -12,6 +12,7 @@ import gettext
 import json
 import csv
 import os
+import shutil
 from controls.commons_controls.file import (
   FileManager, read_json_file, read_twf_file, get_files_path
 )
@@ -125,6 +126,11 @@ class TestFileManager(unittest.TestCase):
       self._('incorrect text')
     )
 
+  def tearDown(self):
+    if os.path.exists(self.fman.output_dir):
+      shutil.rmtree(self.fman.output_dir, ignore_errors=True)
+    return super().tearDown()
+
 class TestFileFunctions(unittest.TestCase):
   """Class to manage unit test of file module functions."""
 
@@ -142,9 +148,10 @@ class TestFileFunctions(unittest.TestCase):
       'prop 2': '2',
       'prop 3': '3'
     })
-    with open(file_name, 'w', encoding='utf-8') as jsonfile:
+    file_path = os.path.join(self.dire, file_name)
+    with open(file_path, 'w', encoding='utf-8') as jsonfile:
       jsonfile.write(data)
-    adata = json.dumps(read_json_file(file_name))
+    adata = json.dumps(read_json_file(file_path))
     self.assertEqual(
       data,
       adata,
@@ -197,3 +204,8 @@ class TestFileFunctions(unittest.TestCase):
       actual,
       self._('recursive true - incorrect file paths')
     )
+
+  def tearDown(self):
+    if os.path.exists(self.dire):
+      shutil.rmtree(self.dire, ignore_errors=True)
+    return super().tearDown()

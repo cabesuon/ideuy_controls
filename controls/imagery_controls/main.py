@@ -24,7 +24,8 @@ from controls.imagery_controls.raster import (
   RasterManager, RasterManagerError
 )
 from controls.imagery_controls.results import (
-  WorldFileData, PixelSizeResult, BandsLenResult, DigitalLevelResult, RadBalanceResult
+  WorldFileData, PixelSizeResult, BandsLenResult, DigitalLevelResult,
+  RadBalanceResult, NoDataResult
 )
 from controls.commons_controls.file import (
   FileManager, FileManagerError, read_twf_file, get_files_path
@@ -78,11 +79,6 @@ def get_args():
     '--summary',
     default='summary.txt',
     help=_('summary file name'))
-  parser.add_argument(
-    '--max_bands',
-    type=int,
-    default=0,
-    help=_('maximun number of bands to control (default all)'))
   parser.add_argument(
     '--recursive',
     dest='recursive',
@@ -183,6 +179,13 @@ def init_detail_file(fman, detail, control):
     ])
   elif control in [Control.rad_balance.value, Control.aall.value]:
     controls.append(Control.rad_balance.value)
+    hrows.append([
+      _('name'),
+      _('conform'),
+      _('bands')
+    ])
+  elif control in [Control.nodata.value, Control.aall.value]:
+    controls.append(Control.nodata.value)
     hrows.append([
       _('name'),
       _('conform'),
@@ -304,7 +307,21 @@ def control_img(fman, img, args, summary_data):
   # radiometric balance
   elif args.control in (Control.rad_balance.value, Control.aall.value):
     bands_stats = raster.get_raster_bands_rad_balance(args.deviation)
-    res = RadBalanceResult(bands_stats, args.conform, args.saturation)
+    res = RadBalanceResult(bands_stats, args.conform)
+    row = [img]
+    row.extend(res.result_row())
+    save_result(
+      fman,
+      args.detail,
+      args.control,
+      row
+    )
+    if not res.is_conform:
+      summary_data[args.control].append(img)
+  # radiometric balance
+  elif args.control in (Control.nodata.value, Control.aall.value):
+    bands_nodata = raster.get_raster_bands_nodata()
+    res = NoDataResult(bands_nodata, args.conform)
     row = [img]
     row.extend(res.result_row())
     save_result(

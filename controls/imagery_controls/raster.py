@@ -1,7 +1,5 @@
 """Module that contains the tools to open and retrieve raster properties and statistics.
 
-Functions:
-
 Classes:
   ImgManagerError.
   ImgManager.
@@ -138,10 +136,8 @@ class RasterManager:
       for r__ in range(self.dataset.RasterCount):
         band = self.get_raster_band(r__ + 1)
         stats = band.GetStatistics(True, True)
-        vmin = stats[0]
-        vmax = stats[1]
-        rmin = vmin * (1 + deviation)
-        rmax = vmax * (1 - deviation)
+        rmin = stats[0] * (1 + deviation)
+        rmax = stats[1] * (1 - deviation)
         band_arr = band.ReadAsArray(
           0,
           0,
@@ -151,9 +147,16 @@ class RasterManager:
         cmin = np.count_nonzero(band_arr < rmin)
         cmax = np.count_nonzero(band_arr > rmax)
         cval = self.dataset.RasterXSize * self.dataset.RasterYSize
-        pmin = round(cmin/cval, 6)
-        pmax = round(cmax/cval, 6)
-        bands_stats.append([vmin, vmax, rmin, rmax, cmin, cmax, pmin*100, pmax*100])
+        bands_stats.append([
+          stats[0],
+          stats[1],
+          rmin,
+          rmax,
+          cmin,
+          cmax,
+          round(cmin/cval, 6) * 100,
+          round(cmax/cval, 6) * 100
+        ])
     except RasterManagerError as err:
       raise err
     except RuntimeError:
@@ -161,3 +164,35 @@ class RasterManager:
       self.logger.error(msg, exc_info=True)
       raise RasterManagerError(msg)
     return bands_stats
+
+  def get_raster_bands_nodata(self):
+    """Returns the statistics for no data of the bands of the raster.
+
+    Returns:
+      List of list of integers.
+
+    Raises:
+      RasterManagerError
+    """
+    bands_nodata = []
+    try:
+      for r__ in range(self.dataset.RasterCount):
+        band = self.get_raster_band(r__ + 1)
+        nodata = band.GetNoDataValue()
+        band_arr = band.ReadAsArray(
+          0,
+          0,
+          self.dataset.RasterXSize,
+          self.dataset.RasterYSize
+        ).astype(np.float)
+        cnd = np.count_nonzero(band_arr == nodata)
+        cval = self.dataset.RasterXSize * self.dataset.RasterYSize
+        pnd = round(cnd/cval, 6)
+        bands_nodata.append(pnd*100)
+    except RasterManagerError as err:
+      raise err
+    except RuntimeError:
+      msg = '{}'.format(self._('Cannot retrieve raster bands len'))
+      self.logger.error(msg, exc_info=True)
+      raise RasterManagerError(msg)
+    return bands_nodata

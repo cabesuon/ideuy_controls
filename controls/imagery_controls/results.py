@@ -13,7 +13,7 @@ Classes:
 """
 import math
 
-class WorldFileData:
+class WorldFileData: # pylint: disable=R0903
   """Class to handle data of a world file.
 
   Attributes:
@@ -42,7 +42,7 @@ class WorldFileData:
       )
     return xy_
 
-class PixelSizeResult:
+class PixelSizeResult: # pylint: disable=R0903
   """Class for pixel size result.
 
   Attributes:
@@ -81,18 +81,16 @@ class PixelSizeResult:
     """
     return [self.is_conform, self.min_size, self.vmin, self.vmax]
 
-class BandsLenResult:
+class BandsLenResult: # pylint: disable=R0903
   """Class for bands len result.
 
   Attributes:
       conform: Conform value.
-      deviation: Deviation value.
       is_conform: True if pixel size is conform.
       bands_len: Number of bands.
   """
-  def __init__(self, bands_len=None, conform=None, deviation=None):
+  def __init__(self, bands_len=None, conform=None):
     self.conform = conform
-    self.deviation = deviation
     self.bands_len = bands_len
     # calculate result
     self.is_conform = bands_len == conform
@@ -105,37 +103,36 @@ class BandsLenResult:
     """
     return [self.is_conform, self.bands_len]
 
-class DigitalLevelResult:
+class DigitalLevelResult: # pylint: disable=R0903
   """Class for digital level result.
 
   Attributes:
       conform: Conform value.
-      deviation: Deviation value.
       is_conform: True if pixel size is conform.
       bands_dt: Bands GDAL data types.
   """
-  def __init__(self, bands_dt=None, conform=None, deviation=None, max_bands=None):
+  def __init__(self, bands_dt=None, conform=None):
     self.conform = conform
-    self.deviation = deviation
-    if max_bands is None:
-      max_bands = 0
-    self.max_bands = max_bands
     self.bands_dl = []
     # calculate result
     self.is_conform = True
-    for i__ in range(min(len(bands_dt), self.max_bands)):
-      dt_ = bands_dt[i__]
+    for dt_ in bands_dt:
+      bits = None
       if dt_ == 1:
         self.bands_dl.append(8)
+        bits = 8
       elif dt_ in [2, 3, 8]:
         self.bands_dl.append(16)
+        bits = 16
       elif dt_ in [4, 5, 6, 9, 10]:
         self.bands_dl.append(32)
+        bits = 32
       elif dt_ in [7, 11]:
         self.bands_dl.append(64)
+        bits = 64
       else:
         self.bands_dl.append(None)
-      self.is_conform &= dt_ == conform
+      self.is_conform &= bits == conform
 
   def result_row(self):
     """Returns the result row.
@@ -147,7 +144,7 @@ class DigitalLevelResult:
     row.append(','.join(map(str, self.bands_dl)))
     return row
 
-class RadBalanceResult:
+class RadBalanceResult: # pylint: disable=R0903
   """Class for radiometric balance result.
 
   Attributes:
@@ -155,7 +152,7 @@ class RadBalanceResult:
       is_conform: True if pixel size is conform.
       bands_stats: Bands statistics for radiometric balance.
   """
-  def __init__(self, bands_stats=None, conform=None, saturation=None):
+  def __init__(self, bands_stats=None, conform=None):
     self.conform = conform
     self.bands_stats = bands_stats
     # calculate result
@@ -173,4 +170,31 @@ class RadBalanceResult:
     """
     row = [self.is_conform]
     row.append(';'.join([','.join(map(str, stats)) for stats in self.bands_stats]))
+    return row
+
+class NoDataResult: # pylint: disable=R0903
+  """Class for no data result.
+
+  Attributes:
+      conform: Conform value.
+      is_conform: True if pixel size is conform.
+      bands_nodata: Bands percentage of nodata values.
+  """
+  def __init__(self, bands_nodata=None, conform=None):
+    self.conform = conform
+    self.bands_nodata = bands_nodata
+    # calculate result
+    pconf = self.conform * 100
+    self.is_conform = True
+    for pnd in bands_nodata:
+      self.is_conform &= pnd < pconf
+
+  def result_row(self):
+    """Returns the result row.
+
+    Returns:
+      List with values is_conform and each band digital level.
+    """
+    row = [self.is_conform]
+    row.append(';'.join(map(str, self.bands_nodata)))
     return row
