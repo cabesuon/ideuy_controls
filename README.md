@@ -99,6 +99,7 @@ Search multipart geometries of all tables in a given schema.
 Search not allowed intersection between geometries of all tables in a given schema. Allowed intersections are taken from a json file passed with the option `--admissibles path\to\admissibles.json`.
 
 The admissibles file has the following format,
+
 ```json
 {
   "table_i1": ["table_j1", .., "table_k1"],
